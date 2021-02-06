@@ -1,0 +1,8 @@
+{
+  "devToolsPort": 19003,
+  "expoServerPort": 19001,
+  "packagerPort": 19001,
+  "expoServerNgrokUrl": "https://ji-dvc.anonymous.back-splash.exp.direct",
+  "packagerNgrokUrl": "https://packager.ji-dvc.anonymous.back-splash.exp.direct",
+  "ngrokPid": 22742
+}
