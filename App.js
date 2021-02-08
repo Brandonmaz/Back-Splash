@@ -1,7 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, AllPhotos, share } from 'react-native';
+import {Permissions, FileSystem} from 'expo'
 import axios from 'axios'
+import {Ionicons} from '@expo/vector-icons'
 
 const {height, width} = Dimensions.get('window')
 
@@ -40,6 +42,25 @@ export default class App extends React.Component {
     this.loadWallpapers()
   }
 
+  saveToAllPhotos = async (image)=>{
+    let cameraPermissions = await Permissions.getAsync
+    (Permissions.CAMERA_ROLL)
+    if(cameraPermissions.status !== 'granted'){
+      cameraPermissions = await Permissions.askAsync
+      (Permissions.CAMERA_ROLL)
+    }
+    if(cameraPermissions.status === 'granted'){
+      FileSystem.downloadAsync(image.urls.regular, FileSystem.documentDirectory+image.id+'.jpg').then(({uri})=>{
+        AllPhotos.saveToAllPhotos(uri)
+        alert('Saved to photos')
+      }).catch(error=>{
+        console.log(error)
+      })
+    } else {
+      alert('Requires camera roll permission')
+    }
+  }
+
   showControls = (item) => {
     this.setState((state) => ({
       useNativeDriver:!state.useNativeDriver
@@ -47,15 +68,26 @@ export default class App extends React.Component {
       if(this.state.useNativeDriver){
         Animated.spring(this.state.scale,{
           toValue:0.9,
-          useNativeDriver: true
+          useNativeDriver: true,
+          zIndex: 1
         }).start()
       } else {
         Animated.spring(this.state.scale,{
           toValue: 1,
-          useNativeDriver: true
+          useNativeDriver: true,
+          zIndex: 1
         }).start()
       }
     })
+  }
+  shareWallpaper = async (image) => {
+    try{
+      await Share.share({
+        message:'Checkout this wallpaper '+image.urls.full
+      })
+    } catch(error){
+      console.log(error)
+    }
   }
   renderItem = ({item}) => {
     return (
@@ -83,6 +115,49 @@ export default class App extends React.Component {
             />
           </Animated.View>
         </TouchableWithoutFeedback>
+        <Animated.View 
+          style={{
+            zIndex: 1,
+            position:'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 80,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            flexDirection:'row',
+            justifyContent: 'space-around'
+          }}>
+        <View 
+          style={{
+            flex: 1, 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => this.loadWallpapers()}>
+            <Ionicons name="ios-refresh" color="white" size={40}/>
+          </TouchableOpacity>
+        </View>
+         <View 
+          style={{
+            flex: 1, 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => this.shareWallpaper(item)}>
+            <Ionicons name="ios-share" color="white" size={40}/>
+          </TouchableOpacity>
+        </View>
+         <View 
+          style={{
+            flex: 1, 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => this.saveToAllPhotos(item)} >
+            <Ionicons name="ios-save" color="white" size={40}/>
+          </TouchableOpacity>
+        </View>
+        </Animated.View>
       </View>
     )
   }
@@ -101,6 +176,7 @@ export default class App extends React.Component {
     ) :
     <View style={{flex: 1, backgroundColor: 'black'}}>
       <FlatList
+        scrollEnabled={!this.state.useNativeDriver}
         horizontal
         pagingEnabled
         data={this.state.images}
