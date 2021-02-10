@@ -1,7 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, AllPhotos, share } from 'react-native';
-import {Permissions, FileSystem} from 'expo'
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, AllPhotos, Share } from 'react-native'
+import CameraRoll from '@react-native-community/cameraroll'
+import * as Permissions from 'expo-permissions';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
 import axios from 'axios'
 import {Ionicons} from '@expo/vector-icons'
 
@@ -41,17 +44,17 @@ export default class App extends React.Component {
   componentDidMount(){
     this.loadWallpapers()
   }
-
+  
   saveToAllPhotos = async (image)=>{
     let cameraPermissions = await Permissions.getAsync
-    (Permissions.CAMERA_ROLL)
+    (Permissions.MEDIA_LIBRARY)
     if(cameraPermissions.status !== 'granted'){
       cameraPermissions = await Permissions.askAsync
-      (Permissions.CAMERA_ROLL)
+      (Permissions.MEDIA_LIBRARY)
     }
     if(cameraPermissions.status === 'granted'){
       FileSystem.downloadAsync(image.urls.regular, FileSystem.documentDirectory+image.id+'.jpg').then(({uri})=>{
-        AllPhotos.saveToAllPhotos(uri)
+        MediaLibrary.saveToLibraryAsync(uri)
         alert('Saved to photos')
       }).catch(error=>{
         console.log(error)
@@ -69,13 +72,13 @@ export default class App extends React.Component {
         Animated.spring(this.state.scale,{
           toValue:0.9,
           useNativeDriver: true,
-          zIndex: 1
+          // zIndex: 1
         }).start()
       } else {
         Animated.spring(this.state.scale,{
           toValue: 1,
           useNativeDriver: true,
-          zIndex: 1
+          // zIndex: 1
         }).start()
       }
     })
@@ -144,7 +147,7 @@ export default class App extends React.Component {
             justifyContent: 'center'
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() => this.shareWallpaper(item)}>
-            <Ionicons name="ios-share" color="white" size={40}/>
+            <Ionicons name="earth-outline" color="white" size={40}/>
           </TouchableOpacity>
         </View>
          <View 
@@ -154,7 +157,7 @@ export default class App extends React.Component {
             justifyContent: 'center'
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() => this.saveToAllPhotos(item)} >
-            <Ionicons name="ios-save" color="white" size={40}/>
+            <Ionicons name="heart-outline" color="white" size={40}/>
           </TouchableOpacity>
         </View>
         </Animated.View>
