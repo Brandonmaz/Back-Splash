@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, AllPhotos, Share } from 'react-native'
-import CameraRoll from '@react-native-community/cameraroll'
+import { Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, Share } from 'react-native'
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios'
-import {Ionicons} from '@expo/vector-icons'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 
 const {height, width} = Dimensions.get('window')
 
@@ -17,12 +17,21 @@ export default class App extends React.Component {
     this.state = {
       isLoading : true,
       images:[],
+      instagram_username: '',
       scale: new Animated.Value(1),
-      useNativeDriver: false,
+      isImagedFocused: false,
     }
     this.scale = {
       transform: [{scale:this.state.scale}]
     }
+    this.actionBarY = this.state.scale.interpolate({
+      inputRange: [0.9, 1],
+      outputRange: [0, -80]
+    })
+    this.borderRadius = this.state.scale.interpolate({
+      inputRange: [0.9, 1],
+      outputRange: [30, 0]
+    })
   }
 
   loadWallpapers = () => {
@@ -66,19 +75,15 @@ export default class App extends React.Component {
 
   showControls = (item) => {
     this.setState((state) => ({
-      useNativeDriver:!state.useNativeDriver
+      isImagedFocused:!state.isImagedFocused
     }), () => {
-      if(this.state.useNativeDriver){
+      if(this.state.isImagedFocused){
         Animated.spring(this.state.scale,{
-          toValue:0.9,
-          useNativeDriver: true,
-          // zIndex: 1
+          toValue:0.85,
         }).start()
       } else {
         Animated.spring(this.state.scale,{
           toValue: 1,
-          useNativeDriver: true,
-          // zIndex: 1
         }).start()
       }
     })
@@ -111,22 +116,24 @@ export default class App extends React.Component {
         </View>
         <TouchableWithoutFeedback onPress = {()=> this.showControls(item)}>
           <Animated.View style={[{height, width}, this.scale]}>
-            <Image
-              style={{flex: 1, height: null, width: null}}
+            <Animated.Image
+              style={{
+                flex: 1, 
+                height: null, 
+                width: null,
+                borderRadius: this.borderRadius
+              }}
               source= {{uri: item.urls.regular}}
-              resizeMode="cover"
             />
           </Animated.View>
         </TouchableWithoutFeedback>
         <Animated.View 
           style={{
-            zIndex: 1,
             position:'absolute',
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: this.actionBarY,
             height: 80,
-            backgroundColor: 'rgba(0,0,0,0.3)',
             flexDirection:'row',
             justifyContent: 'space-around'
           }}>
@@ -137,7 +144,17 @@ export default class App extends React.Component {
             justifyContent: 'center'
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() => this.loadWallpapers()}>
-            <Ionicons name="ios-refresh" color="white" size={40}/>
+            <MaterialCommunityIcons name="refresh" color="ghostwhite" size={35}/>
+          </TouchableOpacity>
+        </View>
+        <View 
+          style={{
+            flex: 1, 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => this.saveToAllPhotos(item)} >
+            <MaterialCommunityIcons name="heart-plus" color="red" size={65}/>
           </TouchableOpacity>
         </View>
          <View 
@@ -147,19 +164,17 @@ export default class App extends React.Component {
             justifyContent: 'center'
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() => this.shareWallpaper(item)}>
-            <Ionicons name="earth-outline" color="white" size={40}/>
+            <FontAwesome name="slideshare" color="ghostwhite" size={30}/>
           </TouchableOpacity>
         </View>
-         <View 
+        {/* <View
           style={{
             flex: 1, 
             alignItems: 'center', 
             justifyContent: 'center'
           }}>
-          <TouchableOpacity activeOpacity={0.5} onPress={() => this.saveToAllPhotos(item)} >
-            <Ionicons name="heart-outline" color="white" size={40}/>
-          </TouchableOpacity>
-        </View>
+          <Text>hello</Text>
+        </View> */}
         </Animated.View>
       </View>
     )
@@ -179,8 +194,8 @@ export default class App extends React.Component {
     ) :
     <View style={{flex: 1, backgroundColor: 'black'}}>
       <FlatList
-        scrollEnabled={!this.state.useNativeDriver}
-        horizontal
+        scrollEnabled={!this.state.isImagedFocused}
+        vertical
         pagingEnabled
         data={this.state.images}
         renderItem={this.renderItem}
@@ -189,15 +204,6 @@ export default class App extends React.Component {
     </View>
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 // Access Key
 // qoq6NUdLxF7YpT92ANivmEylYgk8vYUtmFgLaVupxBs
