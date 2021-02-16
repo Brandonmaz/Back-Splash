@@ -1,6 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Text, View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, Share } from 'react-native'
+import { View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, Share } from 'react-native'
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
@@ -17,15 +16,15 @@ export default class App extends React.Component {
     this.state = {
       isLoading : true,
       images:[],
-      instagram_username: '',
+      isLiked: false,
       scale: new Animated.Value(1),
       isImagedFocused: false,
     }
     this.scale = {
       transform: [{scale:this.state.scale}]
     }
-    this.actionBarY = this.state.scale.interpolate({
-      inputRange: [0.9, 1],
+    this.bottomMenu = this.state.scale.interpolate({
+      inputRange: [0.87, 1],
       outputRange: [0, -80]
     })
     this.borderRadius = this.state.scale.interpolate({
@@ -97,6 +96,15 @@ export default class App extends React.Component {
       console.log(error)
     }
   }
+  onLikePress = () => {
+      this.setState({
+        isLiked: !this.state.isLiked
+      })
+    }
+  // combinedLikeSave = () => {
+  //   this.saveToAllPhotos()
+  //   this.onLikePress()
+  // }
   renderItem = ({item}) => {
     return (
       <View style={{flex: 1}}>
@@ -124,6 +132,7 @@ export default class App extends React.Component {
                 borderRadius: this.borderRadius
               }}
               source= {{uri: item.urls.regular}}
+              // source={{uri: item.location}}
             />
           </Animated.View>
         </TouchableWithoutFeedback>
@@ -132,7 +141,7 @@ export default class App extends React.Component {
             position:'absolute',
             left: 0,
             right: 0,
-            bottom: this.actionBarY,
+            bottom: this.bottomMenu,
             height: 80,
             flexDirection:'row',
             justifyContent: 'space-around'
@@ -144,17 +153,17 @@ export default class App extends React.Component {
             justifyContent: 'center'
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() => this.loadWallpapers()}>
-            <MaterialCommunityIcons name="refresh" color="ghostwhite" size={35}/>
+              <MaterialCommunityIcons name={"refresh"} color={'ghostwhite'} size={35}/>
           </TouchableOpacity>
         </View>
         <View 
           style={{
             flex: 1, 
             alignItems: 'center', 
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}>
-          <TouchableOpacity activeOpacity={0.5} onPress={() => this.saveToAllPhotos(item)} >
-            <MaterialCommunityIcons name="heart-plus" color="red" size={65}/>
+          <TouchableOpacity activeOpacity={0.5} onPress={() =>  {this.saveToAllPhotos(item); this.onLikePress()}} >
+              <MaterialCommunityIcons name={"heart-plus"} size={65} color={this.state.isLiked ? 'red' : 'ghostwhite'} />
           </TouchableOpacity>
         </View>
          <View 
@@ -164,21 +173,24 @@ export default class App extends React.Component {
             justifyContent: 'center'
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() => this.shareWallpaper(item)}>
-            <FontAwesome name="slideshare" color="ghostwhite" size={30}/>
+            <FontAwesome name={"slideshare"} color="ghostwhite" size={30}/>
           </TouchableOpacity>
         </View>
-        {/* <View
+        {/* <View 
           style={{
             flex: 1, 
             alignItems: 'center', 
-            justifyContent: 'center'
-          }}>
-          <Text>hello</Text>
+            justifyContent: 'center',
+            fontColor: 'white'
+          }}
+          source={{uri: item.location}}>
+          <Text>{}</Text>
         </View> */}
         </Animated.View>
       </View>
     )
   }
+
   render() {
     return  this.state.isLoading ? (
       <View 
@@ -204,7 +216,6 @@ export default class App extends React.Component {
     </View>
   }
 }
-
 // Access Key
 // qoq6NUdLxF7YpT92ANivmEylYgk8vYUtmFgLaVupxBs
 
