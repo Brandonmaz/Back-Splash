@@ -79,10 +79,12 @@ export default class App extends React.Component {
       if(this.state.isImagedFocused){
         Animated.spring(this.state.scale,{
           toValue:0.85,
+          useNativeDriver: false
         }).start()
       } else {
         Animated.spring(this.state.scale,{
           toValue: 1,
+          useNativeDriver: false
         }).start()
       }
     })
