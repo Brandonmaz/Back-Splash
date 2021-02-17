@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, Share } from 'react-native'
+import { View, ActivityIndicator, FlatList, Dimensions, Image, Animated, TouchableWithoutFeedback, TouchableOpacity, Share, ScrollView } from 'react-native'
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
@@ -8,14 +8,16 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 
 const {height, width} = Dimensions.get('window')
+const scrollYPos = 0
 
 export default class App extends React.Component {
 
-  constructor(){
-    super()
+  constructor(props){
+    super(props)
     this.state = {
       isLoading : true,
       images:[],
+      scroll: false,
       isLiked: false,
       scale: new Animated.Value(1),
       isImagedFocused: false,
@@ -103,12 +105,13 @@ export default class App extends React.Component {
         isLiked: !this.state.isLiked
       })
     }
-  // combinedLikeSave = () => {
-  //   this.saveToAllPhotos()
-  //   this.onLikePress()
-  // }
+   refreshToTop = () => {
+    this.scroll.scrollTo({x: 0, y: 0, animated: true});
+  };
+  
   renderItem = ({item}) => {
     return (
+      <ScrollView ref={(scroll) => {this.scroll = scroll}}>
       <View style={{flex: 1}}>
         <View
           style={{
@@ -154,7 +157,7 @@ export default class App extends React.Component {
             alignItems: 'center', 
             justifyContent: 'center'
           }}>
-          <TouchableOpacity activeOpacity={0.5} onPress={() => this.loadWallpapers()}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => {this.loadWallpapers(); this.refreshToTop()}}>
               <MaterialCommunityIcons name={"refresh"} color={'ghostwhite'} size={35}/>
           </TouchableOpacity>
         </View>
@@ -165,7 +168,7 @@ export default class App extends React.Component {
             justifyContent: 'center',
           }}>
           <TouchableOpacity activeOpacity={0.5} onPress={() =>  {this.saveToAllPhotos(item); this.onLikePress()}} >
-              <MaterialCommunityIcons name={"heart-plus"} size={65} color={this.state.isLiked ? 'red' : 'ghostwhite'} />
+              <MaterialCommunityIcons name={"heart-plus"} size={65} color={this.state.isLiked ? 'red' : 'red'} />
           </TouchableOpacity>
         </View>
          <View 
@@ -178,18 +181,9 @@ export default class App extends React.Component {
             <FontAwesome name={"slideshare"} color="ghostwhite" size={30}/>
           </TouchableOpacity>
         </View>
-        {/* <View 
-          style={{
-            flex: 1, 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            fontColor: 'white'
-          }}
-          source={{uri: item.location}}>
-          <Text>{}</Text>
-        </View> */}
         </Animated.View>
       </View>
+    </ScrollView>
     )
   }
 

@@ -1,2 +1,3 @@
 # Back-Splash
 Project5
+I created this app with the idea to publish it on Apple. I still need to make some changes in order for it be unique and UX to be spot on. I also need to figure out how to add commercials into each save, refresh, and share. Another change I would like to make is to the backend where the pics are coming from. I would like to create my own server with photos, and then I can also apply a search engine for specific topic images.
